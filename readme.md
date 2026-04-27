@@ -40,8 +40,8 @@ cmake --install build
 After installing, you can consume the library with:
 
 ```cmake
-find_package(blank CONFIG REQUIRED)
-target_link_libraries(your_app PRIVATE blank::blank)
+find_package(mt_lib CONFIG REQUIRED)
+target_link_libraries(your_app PRIVATE mt_lib::mt_lib)
 ```
 
 If installed to a non-standard prefix, point CMake at it:

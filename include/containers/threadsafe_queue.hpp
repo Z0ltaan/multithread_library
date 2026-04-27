@@ -52,7 +52,11 @@ namespace mt
       return std::make_unique< T >(std::move(tmp->data));
     }
 
-    bool empty() const noexcept { return tail_ == dummy_head_.get(); }
+    bool empty() const noexcept
+    {
+      std::scoped_lock lock{ head_mutex_, tail_mutex_ };
+      return tail_ == dummy_head_.get();
+    }
 
   private:
     std::unique_ptr< node > dummy_head_;
