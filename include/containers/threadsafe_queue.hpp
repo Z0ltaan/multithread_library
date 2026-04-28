@@ -15,8 +15,7 @@ namespace mt
       std::unique_ptr< node > next;
 
       node() : data(), next() {}
-      node(T data) : node(std::move(data)) {}
-      node(T&& data) : data(data), next() {}
+      node(T data) : data(std::move(data)), next() {}
     };
 
   public:
