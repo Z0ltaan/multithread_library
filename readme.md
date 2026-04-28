@@ -6,6 +6,7 @@ CMake-based C++ library project that builds on **Linux**, and can be consumed vi
 ## Initial requirements
 
 - CMake 3.22+
+- Make
 - A C++17 compiler:
   - Linux: GCC or Clang
 
