@@ -23,11 +23,14 @@ mt::threadsafe_logger::set_log_level(mt::LOG_LEVEL log_level)
 void
 mt::threadsafe_logger::log(const std::string& message, mt::LOG_LEVEL log_level)
 {
-  std::string formated_message =
-    log_stamp_factory_.at(log_level) + ": " + message + '\n';
+  if (log_level <= log_level_)
+  {
+    std::string formated_message = log_stamp_factory_.at(log_level) + " " +
+                                   identifier_ + ": " + message + '\n';
 
-  std::lock_guard output_lock{ output_ptr_->mtx };
-  output_ptr_->out << formated_message;
+    std::lock_guard output_lock{ output_ptr_->mtx };
+    output_ptr_->out << formated_message;
+  }
 }
 
 void

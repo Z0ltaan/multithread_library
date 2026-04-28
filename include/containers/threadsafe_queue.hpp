@@ -15,7 +15,7 @@ namespace mt
       std::unique_ptr< node > next;
 
       node() : data(), next() {}
-      node(T data) : data(std::move(data)), next() {}
+      node(T data) : node(std::move(data)) {}
       node(T&& data) : data(data), next() {}
     };
 
@@ -23,8 +23,12 @@ namespace mt
     threadsafe_queue() :
       dummy_head_(std::make_unique< node >()), tail_(dummy_head_.get())
     {}
+    // threadsafe_queue(const threadsafe_queue& rhs) = delete;
+    // threadsafe_queue(threadsafe_queue&& other) {}
+    // threadsafe_queue& operator=(const threadsafe_queue& rhs) = delete;
+    // threadsafe_queue& operator=(threadsafe_queue&& other) {}
 
-    void push_back(T rhs)
+    void push(T rhs)
     {
       std::unique_ptr< node > new_node =
         std::make_unique< node >(std::ref(rhs));
@@ -34,25 +38,25 @@ namespace mt
       tail_ = tail_->next.get();
     }
 
-    std::unique_ptr< T > try_pop_front()
-    {
-      std::lock_guard head_lock{ head_mutex_ };
-      if (dummy_head_.get() == tail_)
-      {
-        return std::unique_ptr< T >{};
-      }
+    // std::unique_ptr< T > try_pop() {
 
-      std::lock_guard tail_lock{ tail_mutex_ };
-      std::unique_ptr< node > tmp = std::move(dummy_head_->next);
-      dummy_head_->next = std::move(tmp->next);
-      if (tmp.get() == tail_)
+    // std::unique_ptr< node > head = try_pop_head();
+    // return head.get() == nullptr ? std::unique_ptr< T >{}
+    //                              : std::make_unique(std::move(head->data));
+    // }
+
+    bool try_pop(T& lhs)
+    {
+      std::unique_ptr< node > head = try_pop_head();
+      if (head.get() == nullptr)
       {
-        tail_ = dummy_head_.get();
+        return false;
       }
-      return std::make_unique< T >(std::move(tmp->data));
+      lhs = std::move(head->data);
+      return true;
     }
 
-    bool empty() const noexcept
+    bool empty() const
     {
       std::scoped_lock lock{ head_mutex_, tail_mutex_ };
       return tail_ == dummy_head_.get();
@@ -64,6 +68,26 @@ namespace mt
 
     node* tail_;
     std::mutex tail_mutex_;
+
+    std::unique_ptr< node > try_pop_head()
+    {
+      std::lock_guard head_lock{ head_mutex_ };
+      if (dummy_head_.get() == tail_)
+      {
+        return std::unique_ptr< node >{};
+      }
+
+      std::lock_guard tail_lock{ tail_mutex_ };
+      std::unique_ptr< node > tmp = std::move(dummy_head_->next);
+      dummy_head_->next = std::move(tmp->next);
+      tmp->next = nullptr;
+
+      if (tmp.get() == tail_)
+      {
+        tail_ = dummy_head_.get();
+      }
+      return tmp;
+    }
   };
 } // namespace mt
 
