@@ -17,6 +17,9 @@ namespace mt
     {
       std::ofstream out;
       std::mutex mtx;
+
+      output() = default;
+      explicit output(std::ofstream out) : out(std::move(out)), mtx() {}
     };
 
     threadsafe_logger(const std::string& id,
