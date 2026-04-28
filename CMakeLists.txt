@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(
   mt_lib
-  VERSION 0.0.1
+  VERSION 0.2.1
   LANGUAGES CXX)
 
 include(GNUInstallDirs)

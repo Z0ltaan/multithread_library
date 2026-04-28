@@ -79,7 +79,6 @@ namespace mt
       std::lock_guard tail_lock{ tail_mutex_ };
       std::unique_ptr< node > tmp = std::move(dummy_head_->next);
       dummy_head_->next = std::move(tmp->next);
-      tmp->next = nullptr;
 
       if (tmp.get() == tail_)
       {
