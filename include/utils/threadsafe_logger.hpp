@@ -1,6 +1,7 @@
 #ifndef THREADSAFE_LOGGER_HPP
 #define THREADSAFE_LOGGER_HPP
 
+#include <atomic>
 #include <fstream>
 #include <map>
 #include <memory>
@@ -22,13 +23,24 @@ namespace mt
       explicit output(std::ofstream out) : out(std::move(out)), mtx() {}
     };
 
+    enum LOG_LEVEL
+    {
+      TRACE,
+      DEBUG,
+      INFO,
+      WARNING,
+      ERROR,
+      FATAL,
+      OFF
+    };
+
     threadsafe_logger(const std::string& id,
                       std::shared_ptr< output > out_ptr,
-                      mt::LOG_LEVEL lowest_to_log = LOG_LEVEL::ERROR);
+                      LOG_LEVEL lowest_to_log = LOG_LEVEL::ERROR);
 
-    mt::LOG_LEVEL log_level();
-    void set_log_level(mt::LOG_LEVEL log_level);
-    void log(const std::string& message, mt::LOG_LEVEL log_level);
+    LOG_LEVEL log_level();
+    void set_log_level(LOG_LEVEL log_level);
+    void log(const std::string& message, LOG_LEVEL log_level);
     void trace(const std::string& message);
     void debug(const std::string& message);
     void info(const std::string& message);
@@ -37,18 +49,18 @@ namespace mt
     void fatal(const std::string& message);
 
   private:
-    mt::LOG_LEVEL log_level_;
+    std::atomic< LOG_LEVEL > log_level_;
     const std::shared_ptr< output > output_ptr_;
     const std::string identifier_;
 
-    const inline static std::map< mt::LOG_LEVEL, std::string >
+    const inline static std::map< LOG_LEVEL, std::string >
       log_stamp_factory_ = {
-        { mt::LOG_LEVEL::TRACE, "[ TRACE ]" },
-        { mt::LOG_LEVEL::DEBUG, "[ DEBUG ]" },
-        { mt::LOG_LEVEL::INFO, "[ INFO ]" },
-        { mt::LOG_LEVEL::WARNING, "[ WARNING ]" },
-        { mt::LOG_LEVEL::ERROR, "[ ERROR ]" },
-        { mt::LOG_LEVEL::FATAL, "[ FATAL ]" },
+        { LOG_LEVEL::TRACE, "[ TRACE ]" },
+        { LOG_LEVEL::DEBUG, "[ DEBUG ]" },
+        { LOG_LEVEL::INFO, "[ INFO ]" },
+        { LOG_LEVEL::WARNING, "[ WARNING ]" },
+        { LOG_LEVEL::ERROR, "[ ERROR ]" },
+        { LOG_LEVEL::FATAL, "[ FATAL ]" },
       };
   };
 } // namespace mt

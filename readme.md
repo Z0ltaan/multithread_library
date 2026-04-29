@@ -1,6 +1,6 @@
 # mt_lib
 
-A minimalisctic implementation of threadsafe data structures, algorithms and utils.
+A minimalisctic implementation of threadsafe data structures and utils.
 CMake-based C++ library project that builds on **Linux**, and can be consumed via `find_package()` after installation.
 
 ## Initial requirements
@@ -54,6 +54,8 @@ cmake -S . -B build -DCMAKE_PREFIX_PATH="$HOME/.local"
 ```
 
 ## Usage examples
+
+See **examples** directory of the repository
 
 ## TODO:
 
