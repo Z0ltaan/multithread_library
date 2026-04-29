@@ -2,8 +2,10 @@
 #define THREADSAFE_QUEUE_HPP
 
 #include <algorithm>
+#include <condition_variable>
 #include <memory>
 #include <mutex>
+#include <optional>
 
 namespace mt
 {
@@ -12,7 +14,7 @@ namespace mt
   {
     struct node
     {
-      T data;
+      std::optional< T > data;
       std::unique_ptr< node > next;
 
       node() : data(), next() {}
@@ -23,6 +25,7 @@ namespace mt
     threadsafe_queue() : head_(std::make_unique< node >()), tail_(head_.get())
     {}
 
+    // NOTE: for now move logic is dropped
     threadsafe_queue(const threadsafe_queue& rhs) = delete;
     threadsafe_queue(threadsafe_queue&& other) = delete;
 
@@ -37,6 +40,8 @@ namespace mt
       tail_->data = std::move(rhs);
       tail_->next = std::move(new_dummy);
       tail_ = tail_->next.get();
+
+      queue_not_empty_cond_.notify_one();
     }
 
     bool try_pop(T& lhs)
@@ -46,8 +51,21 @@ namespace mt
       {
         return false;
       }
-      lhs = std::move(popped_head->data);
+      lhs = std::move(popped_head->data.value());
       return true;
+    }
+
+    void wait_and_pop(T& lhs)
+    {
+      std::unique_lock lock{ head_mutex_ };
+      queue_not_empty_cond_.wait(lock,
+                                 [this] { return head_.get() != get_tail(); });
+
+      std::unique_ptr< node > tmp = std::move(head_);
+      head_ = std::move(tmp->next);
+      lock.unlock();
+
+      lhs = std::move(tmp->data.value());
     }
 
     bool empty() const
@@ -62,6 +80,8 @@ namespace mt
 
     node* tail_;
     std::mutex tail_mutex_;
+
+    std::condition_variable queue_not_empty_cond_;
 
     node* get_tail()
     {
