@@ -7,7 +7,6 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <utils/log_level.hpp>
 
 namespace mt
 {
