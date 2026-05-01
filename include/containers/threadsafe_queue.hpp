@@ -21,6 +21,8 @@ namespace mt
       node(T data) : data(std::move(data)), next() {}
     };
 
+    using this_t = mt::threadsafe_queue< T >;
+
   public:
     threadsafe_queue() : head_(std::make_unique< node >()), tail_(head_.get())
     {}
@@ -76,17 +78,23 @@ namespace mt
 
   private:
     std::unique_ptr< node > head_;
-    std::mutex head_mutex_;
+    mutable std::mutex head_mutex_;
 
     node* tail_;
-    std::mutex tail_mutex_;
+    mutable std::mutex tail_mutex_;
 
     std::condition_variable queue_not_empty_cond_;
 
-    node* get_tail()
+    const node* get_tail() const
     {
       std::lock_guard tail_lock{ tail_mutex_ };
       return tail_;
+    }
+
+    node* get_tail()
+    {
+      return const_cast< node* >(
+        static_cast< const this_t& >(*this).get_tail());
     }
 
     std::unique_ptr< node > try_pop_head()

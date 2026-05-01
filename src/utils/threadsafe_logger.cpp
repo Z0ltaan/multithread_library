@@ -68,5 +68,4 @@ void
 mt::threadsafe_logger::fatal(const std::string& message)
 {
   this->log(message, LOG_LEVEL::FATAL);
-  output_ptr_->out.flush();
 }

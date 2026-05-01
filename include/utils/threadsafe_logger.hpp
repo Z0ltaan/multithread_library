@@ -2,7 +2,7 @@
 #define THREADSAFE_LOGGER_HPP
 
 #include <atomic>
-#include <fstream>
+#include <ostream>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -15,11 +15,11 @@ namespace mt
   public:
     struct output
     {
-      std::ofstream out;
+      std::ostream & out;
       std::mutex mtx;
 
-      output() = default;
-      explicit output(std::ofstream out) : out(std::move(out)), mtx() {}
+      output() = delete;
+      explicit output(std::ostream & out) : out(out), mtx() {}
     };
 
     enum LOG_LEVEL

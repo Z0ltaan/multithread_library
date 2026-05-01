@@ -3,11 +3,15 @@
 cmake_minimum_required(VERSION 3.22)
 project(
   mt_lib
-  VERSION 0.2.1
+  VERSION 0.6.0
   LANGUAGES CXX)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+
+string(TOUPPER ${PROJECT_NAME} upper_project_name)
+
+option(${upper_project_name}_BUILD_TESTS "Enable tests build" OFF)
 
 # TODO: file glob should be replaced with regular sources list that is updated
 # manually it is done in this way because there is no way of knowing what files
@@ -56,3 +60,35 @@ install(
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+# NOTE: enable testing if said so
+if(${${upper_project_name}_BUILD_TESTS})
+  include(FetchContent)
+
+  set(test_lib googletest)
+  FetchContent_Declare(
+    ${test_lib}
+    GIT_REPOSITORY https://github.com/google/googletest
+    GIT_TAG v1.17.0)
+
+  set(FETCHCONTENT_QUIET OFF)
+  FetchContent_MakeAvailable(${test_lib})
+
+  enable_testing()
+
+  file(GLOB_RECURSE test_files CONFIGURE_DEPENDS
+       ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
+
+  set(test_bin_name ${PROJECT_NAME}_tests)
+
+  add_executable(${test_bin_name} ${test_files})
+
+  target_link_libraries(
+    ${test_bin_name}
+    PRIVATE GTest::gtest_main
+    PRIVATE GTest::gmock
+    PRIVATE mt_lib::mt_lib)
+
+  include(GoogleTest)
+  gtest_discover_tests(${test_bin_name})
+endif()
